@@ -19,6 +19,7 @@ interface CalendarCommonProps {
   className?: string;
   disabledDates?: string[];
   allowedDates?: string[];
+  disablePastDates?: boolean;
   dateDetails?: Record<string, string>;
   showTopLabels?: boolean;
 }
@@ -361,6 +362,7 @@ function ControlledCalendarInfo({
   selectionMode,
   disabledDates,
   allowedDates,
+  disablePastDates = false,
   dateDetails,
   rangeValue,
   onRangeChange,
@@ -378,6 +380,7 @@ function ControlledCalendarInfo({
   selectionMode?: CalendarSelectionMode;
   disabledDates?: string[];
   allowedDates?: string[];
+  disablePastDates?: boolean;
   dateDetails?: Record<string, string>;
   rangeValue?: CalendarDateRangeValue;
   onRangeChange?: (value: CalendarDateRangeValue) => void;
@@ -427,10 +430,18 @@ function ControlledCalendarInfo({
   const allowedDateSet = useMemo(() => {
     return new Set((allowedDates ?? []).map(getDatePart).filter(Boolean));
   }, [allowedDates]);
+  const todayStart = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }, []);
 
-  const disabledMatchers: Matcher[] | undefined = disabledDateSet.size > 0 || allowedDateSet.size > 0
+  const disabledMatchers: Matcher[] | undefined = disabledDateSet.size > 0 || allowedDateSet.size > 0 || disablePastDates
     ? [
         (date: Date) => {
+          if (disablePastDates && date.getTime() < todayStart.getTime()) {
+            return true;
+          }
+
           const formattedDate = formatInputDate(date);
 
           if (disabledDateSet.has(formattedDate)) {
