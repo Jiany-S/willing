@@ -119,6 +119,7 @@ export default function CalendarInfo<T extends FieldValues>({
           {...(props.datePlaceholder ? { singlePlaceholder: props.datePlaceholder } : {})}
           {...(props.disabledDates ? { disabledDates: props.disabledDates } : {})}
           {...(props.allowedDates ? { allowedDates: props.allowedDates } : {})}
+          {...(props.disablePastDates ? { disablePastDates: props.disablePastDates } : {})}
           {...(props.dateDetails ? { dateDetails: props.dateDetails } : {})}
         />
       );
@@ -153,6 +154,7 @@ export default function CalendarInfo<T extends FieldValues>({
         rangeLabel={`${startLabel} - ${endLabel}`}
         {...(props.disabledDates ? { disabledDates: props.disabledDates } : {})}
         {...(props.allowedDates ? { allowedDates: props.allowedDates } : {})}
+        {...(props.disablePastDates ? { disablePastDates: props.disablePastDates } : {})}
         {...(props.dateDetails ? { dateDetails: props.dateDetails } : {})}
       />
     );
@@ -189,6 +191,7 @@ export default function CalendarInfo<T extends FieldValues>({
       {...controlledModeProps}
       disabledDates={props.disabledDates}
       allowedDates={props.allowedDates}
+      disablePastDates={props.disablePastDates}
       dateDetails={props.dateDetails}
     />
   );

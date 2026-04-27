@@ -102,6 +102,29 @@ const parseIsoDateParts = (value: string) => {
     day: Number(match[3]),
   };
 };
+const getLocalStartOfDayTimestamp = (value: Date | string) => {
+  if (value instanceof Date) {
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+  }
+
+  const parsedParts = parseIsoDateParts(value);
+  if (parsedParts) {
+    return new Date(parsedParts.year, parsedParts.month - 1, parsedParts.day).getTime();
+  }
+
+  const parsedDate = new Date(value);
+  return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()).getTime();
+};
+const assertStartDateNotInPast = (startDate: Date | string, res: Response) => {
+  const startDateTimestamp = getLocalStartOfDayTimestamp(startDate);
+  const today = new Date();
+  const todayTimestamp = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+
+  if (startDateTimestamp < todayTimestamp) {
+    res.status(400);
+    throw new Error('Start date cannot be in the past');
+  }
+};
 const getPostingDates = (startDate: Date | string, endDate: Date | string): string[] => {
   const normalizedStartDate = normalizeStoredDate(startDate);
   const normalizedEndDate = normalizeStoredDate(endDate);
@@ -160,6 +183,7 @@ function createOrganizationPostingRouter(db: Kysely<Database>) {
     const body = newOrganizationPostingSchema.parse(req.body);
     const orgId = req.userJWT!.id;
     const { skills, ...postingBody } = body;
+    assertStartDateNotInPast(body.start_date, res);
 
     if (body.crisis_id != null) {
       await assertCrisisExists(body.crisis_id, db, res);
@@ -533,6 +557,8 @@ function createOrganizationPostingRouter(db: Kysely<Database>) {
     if (body.crisis_id !== undefined && body.crisis_id !== null && body.crisis_id !== posting.crisis_id) {
       await assertCrisisExists(body.crisis_id, db, res);
     }
+    const effectiveStartDate = body.start_date ?? posting.start_date;
+    assertStartDateNotInPast(effectiveStartDate, res);
 
     const existingSkills = await db
       .selectFrom('posting_skill')

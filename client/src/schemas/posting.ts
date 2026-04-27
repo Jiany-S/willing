@@ -2,6 +2,17 @@ import { z } from 'zod';
 
 import { newOrganizationPostingSchema } from '../../../server/src/db/tables';
 
+const isDateBeforeToday = (dateValue: string) => {
+  const [year, month, day] = dateValue.split('-').map(Number);
+  if (!year || !month || !day) return false;
+
+  const selectedDate = new Date(year, month - 1, day);
+  const today = new Date();
+  const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  return selectedDate.getTime() < localToday.getTime();
+};
+
 export const organizationPostingFormSchema = newOrganizationPostingSchema
   .omit({
     crisis_id: true,
@@ -25,6 +36,10 @@ export const organizationPostingFormSchema = newOrganizationPostingSchema
     minimum_age: z.string().optional(),
     automatic_acceptance: z.boolean(),
     allows_partial_attendance: z.boolean().optional(),
+  })
+  .refine(data => !isDateBeforeToday(data.start_date), {
+    message: 'Start date cannot be in the past',
+    path: ['start_date'],
   });
 
 export type OrganizationPostingFormData = z.infer<typeof organizationPostingFormSchema>;
@@ -51,6 +66,10 @@ export const organizationPostingEditFormSchema = newOrganizationPostingSchema
     automatic_acceptance: z.boolean(),
     allows_partial_attendance: z.boolean().optional(),
     is_closed: z.boolean(),
+  })
+  .refine(data => !isDateBeforeToday(data.start_date), {
+    message: 'Start date cannot be in the past',
+    path: ['start_date'],
   });
 
 export type OrganizationPostingEditFormData = z.infer<typeof organizationPostingEditFormSchema>;
