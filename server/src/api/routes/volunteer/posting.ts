@@ -7,6 +7,7 @@ import { buildPostingsWithContext, isVolunteerPostingFull, postingWithContextSel
 import authorizeOnly from '../../../auth/authorizeOnly.ts';
 import executeTransaction from '../../../db/executeTransaction.ts';
 import { type Database, type Enrollment, type EnrollmentApplication } from '../../../db/tables/index.ts';
+import { runEmbeddingInBackground } from '../../../services/embeddings/background.ts';
 import { recomputePostingContextVectorOnly, recomputeVolunteerExperienceVector } from '../../../services/embeddings/updates.ts';
 import { type PostingWithContext } from '../../../types.ts';
 import {
@@ -775,7 +776,9 @@ function createVolunteerPostingRouter(db: Kysely<Database>) {
     }
 
     if (posting.automatic_acceptance) {
-      await recomputePostingContextVectorOnly(id, db);
+      runEmbeddingInBackground(`posting:${id}:context-after-open-enroll`, async () => {
+        await recomputePostingContextVectorOnly(id, db);
+      });
     }
 
     res.json({ enrollment, isOpen: posting.automatic_acceptance });
@@ -848,9 +851,13 @@ function createVolunteerPostingRouter(db: Kysely<Database>) {
     });
 
     if (enrollment?.attended) {
-      await recomputeVolunteerExperienceVector(volunteerId, db);
+      runEmbeddingInBackground(`volunteer:${volunteerId}:experience-after-withdraw`, async () => {
+        await recomputeVolunteerExperienceVector(volunteerId, db);
+      });
     }
-    await recomputePostingContextVectorOnly(id, db);
+    runEmbeddingInBackground(`posting:${id}:context-after-withdraw`, async () => {
+      await recomputePostingContextVectorOnly(id, db);
+    });
 
     res.json({});
   });
