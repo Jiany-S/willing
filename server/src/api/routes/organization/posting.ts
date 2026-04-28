@@ -656,9 +656,6 @@ function createPostingRouter(db: Kysely<Database>) {
     if (body.crisis_id !== undefined && body.crisis_id !== null && body.crisis_id !== posting.crisis_id) {
       await assertCrisisExists(body.crisis_id, db, res);
     }
-    const effectiveStartDate = body.start_date ?? posting.start_date;
-    assertStartDateNotInPast(effectiveStartDate, res);
-
     const existingSkills = await db
       .selectFrom('posting_skill')
       .select('name')
