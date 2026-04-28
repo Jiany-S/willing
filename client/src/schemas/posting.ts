@@ -1,19 +1,23 @@
 import { z } from 'zod';
 
-import { newOrganizationPostingSchema } from '../../../server/src/db/tables';
+import { newPostingSchema } from '../../../server/src/db/tables';
 
-const isDateBeforeToday = (dateValue: string) => {
-  const [year, month, day] = dateValue.split('-').map(Number);
-  if (!year || !month || !day) return false;
+function getTodayDateString() {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+}
 
-  const selectedDate = new Date(year, month - 1, day);
-  const today = new Date();
-  const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-  return selectedDate.getTime() < localToday.getTime();
+const notPastDate = (date: string, ctx: z.RefinementCtx, field: string, label: string) => {
+  if (date && date < getTodayDateString()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `${label} cannot be in the past`,
+      path: [field],
+    });
+  }
 };
 
-export const organizationPostingFormSchema = newOrganizationPostingSchema
+export const postingFormSchema = newPostingSchema
   .omit({
     crisis_id: true,
     latitude: true,
@@ -37,14 +41,14 @@ export const organizationPostingFormSchema = newOrganizationPostingSchema
     automatic_acceptance: z.boolean(),
     allows_partial_attendance: z.boolean().optional(),
   })
-  .refine(data => !isDateBeforeToday(data.start_date), {
-    message: 'Start date cannot be in the past',
-    path: ['start_date'],
+  .superRefine((data, ctx) => {
+    notPastDate(data.start_date, ctx, 'start_date', 'Start date');
+    notPastDate(data.end_date, ctx, 'end_date', 'End date');
   });
 
-export type OrganizationPostingFormData = z.infer<typeof organizationPostingFormSchema>;
+export type PostingFormData = z.infer<typeof postingFormSchema>;
 
-export const organizationPostingEditFormSchema = newOrganizationPostingSchema
+export const postingEditFormSchema = newPostingSchema
   .omit({
     crisis_id: true,
     latitude: true,
@@ -67,9 +71,9 @@ export const organizationPostingEditFormSchema = newOrganizationPostingSchema
     allows_partial_attendance: z.boolean().optional(),
     is_closed: z.boolean(),
   })
-  .refine(data => !isDateBeforeToday(data.start_date), {
-    message: 'Start date cannot be in the past',
-    path: ['start_date'],
+  .superRefine((data, ctx) => {
+    notPastDate(data.start_date, ctx, 'start_date', 'Start date');
+    notPastDate(data.end_date, ctx, 'end_date', 'End date');
   });
 
-export type OrganizationPostingEditFormData = z.infer<typeof organizationPostingEditFormSchema>;
+export type PostingEditFormData = z.infer<typeof postingEditFormSchema>;
