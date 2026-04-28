@@ -86,7 +86,9 @@ function VolunteerInfoCollapse({ volunteer, actions, profileLink }: VolunteerInf
 
   return (
     <Collapse
-      titleClassName="flex items-center justify-between gap-3 z-10 pointer-events-none"
+      action={actions}
+      actionClassName="justify-end"
+      titleClassName="z-10 pointer-events-none"
       contentClassName="pt-0"
       title={(
         <>
@@ -178,17 +180,9 @@ function VolunteerInfoCollapse({ volunteer, actions, profileLink }: VolunteerInf
               />
             </div>
           )}
-          {actions && (
-            <div className="flex gap-2 items-center pointer-events-auto max-sm:hidden" onClick={e => e.stopPropagation()}>
-              {actions}
-            </div>
-          )}
         </>
       )}
     >
-      <div className="mt-4 mb-8 flex flex-col items-end sm:hidden">
-        {actions}
-      </div>
       <div className="flex items-center gap-2 text-xs opacity-70 sm:mt-1 mt-3">
         <Mail size={12} />
         {volunteer.email}
