@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Lock, Save, Settings, Signature, UserRound } from 'lucide-react';
+import { Save, Settings, Signature, UserRound } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 

@@ -1,4 +1,4 @@
-import { Building2, LogOut, ChevronDown, Home, Search, Settings, User } from 'lucide-react';
+import { Building2, LogOut, ChevronDown, Home, Search, Settings } from 'lucide-react';
 import { useCallback, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 
